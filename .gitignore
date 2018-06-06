@@ -1,0 +1,5 @@
+# ignore generated data
+data
+
+# ignore program output
+output.txt
