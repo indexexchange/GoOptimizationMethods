@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"time"
@@ -14,14 +16,30 @@ var (
 	VERSION      = 2
 	INPUT_FOLDER = "./data"
 	OUTPUT_FILE  = "./output.txt"
+
+	DO_PROF      = false
+	PROF_FILE    = "./prof.dat"
 )
 
 func main() {
+	// Parse arguments
+	flag.BoolVar(&DO_PROF, "prof", DO_PROF, "Enables profiling")
+	flag.Parse()
 	if len(os.Args) > 1 {
 		INPUT_FOLDER = os.Args[len(os.Args)-1]
 	}
-
 	fmt.Printf("Starting program V%d!\n", VERSION)
+
+	// Set up profiling
+	if DO_PROF {
+		fmt.Println("\tProfiling enabled")
+		f, err := os.Create(PROF_FILE)
+		fail(err)
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
+	// Main body of work
 	processDataFolder(INPUT_FOLDER)
 }
 

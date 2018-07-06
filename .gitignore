@@ -3,3 +3,6 @@ data
 
 # ignore program output
 output.txt
+
+# ignore personal notes
+notes.txt

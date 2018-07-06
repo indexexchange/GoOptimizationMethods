@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"sync"
@@ -16,20 +17,36 @@ var (
 	VERSION      = 5
 	INPUT_FOLDER = "./data"
 	OUTPUT_FILE  = "./output.txt"
+
+	DO_PROF      = false
+	PROF_FILE    = "./prof.dat"
+
 	PARSE_CUR    = 1
 	BATCH_SIZE   = 1
 )
 
 func main() {
+	// Parse arguments
+	flag.BoolVar(&DO_PROF, "prof", DO_PROF, "Enables profiling")
 	flag.IntVar(&PARSE_CUR, "c", PARSE_CUR, "Concurrency of data parsing")
 	flag.IntVar(&BATCH_SIZE, "b", BATCH_SIZE, "Channel batch size")
 	flag.Parse()
 	if len(os.Args) > 1 {
 		INPUT_FOLDER = os.Args[len(os.Args)-1]
 	}
-
 	fmt.Printf("Starting program V%d!\n", VERSION)
 	fmt.Printf("\t[Batch Size: %d, Parse Concurrency: %d]\n", BATCH_SIZE, PARSE_CUR)
+
+	// Set up profiling
+	if DO_PROF {
+		fmt.Println("\tProfiling enabled")
+		f, err := os.Create(PROF_FILE)
+		fail(err)
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
+	// Main body of work
 	processDataFolder(INPUT_FOLDER)
 }
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"time"
@@ -15,18 +16,34 @@ var (
 	VERSION      = 3
 	INPUT_FOLDER = "./data"
 	OUTPUT_FILE  = "./output.txt"
+
+	DO_PROF      = false
+	PROF_FILE    = "./prof.dat"
+
 	BATCH_SIZE   = 1
 )
 
 func main() {
+	// Parse arguments
+	flag.BoolVar(&DO_PROF, "prof", DO_PROF, "Enables profiling")
 	flag.IntVar(&BATCH_SIZE, "b", BATCH_SIZE, "Channel batch size")
 	flag.Parse()
 	if len(os.Args) > 1 {
 		INPUT_FOLDER = os.Args[len(os.Args)-1]
 	}
-
 	fmt.Printf("Starting program V%d!\n", VERSION)
 	fmt.Printf("\t[Batch Size: %d]\n", BATCH_SIZE)
+
+	// Set up profiling
+	if DO_PROF {
+		fmt.Println("\tProfiling enabled")
+		f, err := os.Create(PROF_FILE)
+		fail(err)
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
+	// Main body of work
 	processDataFolder(INPUT_FOLDER)
 }
 
